@@ -1,228 +1,122 @@
-let addtaskinput = document.getElementById("addtaskinput");
-let addtaskbtn = document.getElementById("addtaskbtn");
-let filters = document.querySelectorAll(".filters span");
+const taskInput = document.querySelector(".task-input input"),
+filters = document.querySelectorAll(".filters span"),
+addbtn = document.querySelector(".addbtn"),
+savebtn = document.querySelector(".savebtn"),
+clearAll = document.querySelector(".clear-btn"),
+taskBox = document.querySelector(".task-box");
 
-
+let editId,
+isEditTask = false,
+todos = JSON.parse(localStorage.getItem("todo-list"));
 
 filters.forEach(btn => {
     btn.addEventListener("click", () => {
-        console.log("filter")
-        document.querySelector("span.text-primary").classList.remove("text-primary");
-        btn.classList.add("text-primary");
-        showtask(btn.id);
+        document.querySelector("span.active").classList.remove("active");
+        btn.classList.add("active");
+        showTodo(btn.id);
     });
 });
 
-addtaskbtn.addEventListener("click", function () {
-    addtaskinputval = addtaskinput.value;
-    if (addtaskinputval.trim() != 0) {
-        let webtask = localStorage.getItem("localtask");
-        let taskInfo = { name: addtaskinputval, status: "pending" };
-        if (webtask == null) {
-            taskObj = [];
-        }
-        else {
-            taskObj = JSON.parse(webtask);
-        }
-        taskObj.push(taskInfo);
-        // console.log(taskObj, 'Ashendra');
-        localStorage.setItem("localtask", JSON.stringify(taskObj));
-        addtaskinput.value = '';
+function showTodo(filter) {
+    console.log(filter)
+    let liTag = "";
+    if(todos) {
+        todos.forEach((todo, id) => {
+            let completed = todo.status == "completed" ? "checked" : "";
+            if(filter == todo.status || filter == "all") {
+                liTag += `<li class="task d-flex align-items-baseline justify-content-between border border-1 mb-3 p-2">
+                           
+                                <input onclick="updateStatus(this)" type="checkbox" id="${id}" ${completed}>
+                                <p class="${completed} mb-0">${todo.name}</p>
+                           
+                                <div class="">
+                                <ul class="task-menu list-unstyled d-flex">
+                                    <li class="me-3 text-primary" onclick='editTask(${id}, "${todo.name}")'>Edit</li>
+                                    <li class="text-danger" onclick='deleteTask(${id}, "${filter}")'>Delete</li>
+                                </ul>
+                            </div>
+                        </li>`;
+            }
+        });
     }
-    showtask();
-})
-
-// showtask
-function showtask(filter) {
-    let webtask = localStorage.getItem("localtask");
-    if (webtask == null) {
-        taskObj = [];
-    }
-    else {
-        taskObj = JSON.parse(webtask);
-    }
-    let html = '';
-    let addedtasklist = document.getElementById("addedtasklist");
-    taskObj.forEach((item, index) => {
-        let completed = item.status == "completed" ? "checked" : "";
-        console.log("status:", completed)
-        if (filter == item.status || filter == "all") {
-            taskCompleteValue = `<td class="completed">${item.name}</td>`;
-            html += `<tr>
-                        <th scope="row">${index + 1}</th>
-                        ${taskCompleteValue}
-                        <td><button type="button" onclick="edittask(${index})" class="text-primary"><i class="fa fa-edit"></i>Edit</button></td>
-                        <td><label for="${index}">
-                        <input onclick="updateStatus(this)" type="checkbox" id="${index}" ${completed}>
-                        </label></td>
-                        <td><button type="button" onclick="deleteitem(${index})" class="text-danger"><i class="fa fa-trash"></i>Delete</button></td>
-                    </tr>`;
-        } else {
-            taskCompleteValue = `<td>${item.name}</td>`;
-        }
-    });
-    addedtasklist.innerHTML = html;
+    taskBox.innerHTML = liTag || `<span>You don't have any task here</span>`;
+    let checkTask = taskBox.querySelectorAll(".task");
+    !checkTask.length ? clearAll.classList.remove("active") : clearAll.classList.add("active");
+    taskBox.offsetHeight >= 300 ? taskBox.classList.add("overflow") : taskBox.classList.remove("overflow");
 }
-showTodo("all");
+showTodo("all")
+
+
 
 function updateStatus(selectedTask) {
     let taskName = selectedTask.parentElement.lastElementChild;
     if(selectedTask.checked) {
         taskName.classList.add("checked");
-        taskObj[selectedTask.id].status = "completed";
+        todos[selectedTask.id].status = "completed";
     } else {
         taskName.classList.remove("checked");
-        taskObj[selectedTask.id].status = "pending";
+        todos[selectedTask.id].status = "pending";
     }
-    localStorage.setItem("todo-list", JSON.stringify(taskObj))
+    localStorage.setItem("todo-list", JSON.stringify(todos))
 }
 
-// edittask
-function edittask(index) {
-    let saveindex = document.getElementById("saveindex");
-    let addtaskbtn = document.getElementById("addtaskbtn");
-    let savetaskbtn = document.getElementById("savetaskbtn");
-    saveindex.value = index;
-    let webtask = localStorage.getItem("localtask");
-    let taskObj = JSON.parse(webtask);
-
-    addtaskinput.value = taskObj[index]["name"];
-    addtaskbtn.style.display = "none";
-    savetaskbtn.style.display = "block";
+function editTask(taskId, textName) {
+    editId = taskId;
+    isEditTask = true;
+    taskInput.value = textName;
+    taskInput.focus();
+    taskInput.classList.add("active");
+    savebtn.classList.remove("d-none");
+    savebtn.classList.add("d-block");
+    addbtn.classList.add("d-none");
 }
 
-// savetask
-let savetaskbtn = document.getElementById("savetaskbtn");
-savetaskbtn.addEventListener("click", function () {
-    let addtaskbtn = document.getElementById("addtaskbtn");
-    let webtask = localStorage.getItem("localtask");
-    let taskObj = JSON.parse(webtask);
-    let saveindex = document.getElementById("saveindex").value;
-
-    for (keys in taskObj[saveindex]) {
-        if (keys == "name") {
-            taskObj[saveindex].name = addtaskinput.value;
-        }
-    }
-    // taskObj[saveindex] = {'task_name':addtaskinput.value, 'completeStatus':false} ;
-    //  taskObj[saveindex][task_name] = addtaskinput.value;
-    savetaskbtn.style.display = "none";
-    addtaskbtn.style.display = "block";
-    localStorage.setItem("localtask", JSON.stringify(taskObj));
-    addtaskinput.value = '';
-    showtask();
-})
-// deleteitem
-function deleteitem(index) {
-    let webtask = localStorage.getItem("localtask");
-    let taskObj = JSON.parse(webtask);
-    taskObj.splice(index, 1);
-    localStorage.setItem("localtask", JSON.stringify(taskObj));
-    showtask();
+function deleteTask(deleteId, filter) {
+    isEditTask = false;
+    todos.splice(deleteId, 1);
+    localStorage.setItem("todo-list", JSON.stringify(todos));
+    showTodo(filter);
 }
 
-//complete task
-/* function completetask(index){
-    let webtask = localStorage.getItem("localtask");
-    let taskObj = JSON.parse(webtask);
-    taskObj[index] = '<span style="text-decoration:line-through">' + taskObj[index] + '</span>';
-    let addedtasklist = document.getElementById("addedtasklist");
-    addedtasklist.addEventListener("click", function(e){
-        console.log(addedtasklist)
-    })
-    localStorage.setItem("localtask", JSON.stringify(taskObj));
-    showtask();
-} */
+clearAll.addEventListener("click", () => {
+    isEditTask = false;
+    todos.splice(0, todos.length);
+    localStorage.setItem("todo-list", JSON.stringify(todos));
+    showTodo()
+});
 
-// complete task
-let addedtasklist = document.getElementById("addedtasklist");
-addedtasklist.addEventListener("click", function (e) {
-    // console.log(e);
-
-    // showtask();
-    let webtask = localStorage.getItem("localtask");
-    let taskObj = JSON.parse(webtask);
-
-    let mytarget = e.target;
-    if (mytarget.classList[0] === 'text-success') {
-        let mytargetid = mytarget.getAttribute("id");
-
-
-        // let taskValue = taskObj[mytargetid]['task_name'];
-
-        mytargetpresibling = mytarget.parentElement.previousElementSibling.previousElementSibling;
-
-        // let mynewelem = mytargetpresibling.classList.toggle("completed");
-        // taskObj.splice(mytargetid,1,mynewelem);
-        for (keys in taskObj[mytargetid]) {
-            if (keys == 'completeStatus' && taskObj[mytargetid][keys] == true) {
-                taskObj[mytargetid].completeStatus = false;
-                // taskObj[mytargetid] = {'task_name':taskValue, 'completeStatus':false};
-            } else if (keys == 'completeStatus' && taskObj[mytargetid][keys] == false) {
-                taskObj[mytargetid].completeStatus = true;
-                //taskObj[mytargetid] = {'task_name':taskValue, 'completeStatus':true};
-            }
+addbtn.addEventListener("click", e => {
+    let userTask = taskInput.value.trim();
+    if(userTask) {
+        if(!isEditTask) {
+            todos = !todos ? [] : todos;
+            let taskInfo = {name: userTask, status: "pending"};
+            todos.push(taskInfo);
+        } else {
+            isEditTask = false;
+            todos[editId].name = userTask;
         }
-        //}
-        // showtask();        
-        localStorage.setItem("localtask", JSON.stringify(taskObj));
-        showtask();
+        taskInput.value = "";
+        localStorage.setItem("todo-list", JSON.stringify(todos));
+        showTodo(document.querySelector("span.active").id);
     }
-})
-
-
-
-
-
-// deleteall
-let deleteallbtn = document.getElementById("deleteallbtn");
-deleteallbtn.addEventListener("click", function () {
-    let savetaskbtn = document.getElementById("savetaskbtn");
-    let addtaskbtn = document.getElementById("addtaskbtn");
-    let webtask = localStorage.getItem("localtask");
-    let taskObj = JSON.parse(webtask);
-    if (webtask == null) {
-        taskObj = [];
-    }
-    else {
-        taskObj = JSON.parse(webtask);
-        taskObj = [];
-    }
-    savetaskbtn.style.display = "none";
-    addtaskbtn.style.display = "block";
-    localStorage.setItem("localtask", JSON.stringify(taskObj));
-    showtask();
-
-})
-
-
-// serachlist
-let searchtextbox = document.getElementById("searchtextbox");
-searchtextbox.addEventListener("input", function () {
-    let trlist = document.querySelectorAll("tr");
-    Array.from(trlist).forEach(function (item) {
-        let searchedtext = item.getElementsByTagName("td")[0].innerText;
-        let searchtextboxval = searchtextbox.value;
-        let re = new RegExp(searchtextboxval, 'gi');
-        if (searchedtext.match(re)) {
-            item.style.display = "table-row";
+});
+savebtn.addEventListener("click", e => {
+    addbtn.classList.remove("d-none");
+    savebtn.classList.remove("d-block");
+    savebtn.classList.add("d-none");
+    let userTask = taskInput.value.trim();
+    if(userTask) {
+        if(!isEditTask) {
+            todos = !todos ? [] : todos;
+            let taskInfo = {name: userTask, status: "pending"};
+            todos.push(taskInfo);
+        } else {
+            isEditTask = false;
+            todos[editId].name = userTask;
         }
-        else {
-            item.style.display = "none";
-        }
-    })
-})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        taskInput.value = "";
+        localStorage.setItem("todo-list", JSON.stringify(todos));
+        showTodo(document.querySelector("span.active").id);
+    }
+});

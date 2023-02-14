@@ -1,0 +1,28 @@
+/* Import Google Font - Poppins */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');::selection{
+    color: #fff;
+    background: #3C87FF;
+  }
+  .task-input input::placeholder{
+    color: #bfbfbf;
+  }
+  .filters span{
+    margin: 0 8px;
+    font-size: 17px;
+    color: #444444;
+    cursor: pointer;
+  }
+  .filters span:first-child{
+    margin-left: 0;
+  }
+  .filters span.active{
+    color: #3C87FF;
+  }
+  .clear-btn.active{
+    opacity: 0.9;
+    pointer-events: auto;
+  }
+  .clear-btn:active{
+    transform: scale(0.93);
+  }
+  
